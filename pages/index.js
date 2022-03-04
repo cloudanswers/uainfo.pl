@@ -17,7 +17,9 @@ export default function Home() {
         </h1>
 
         <p className={styles.description}>
-          Aggregating information for helping people of Ukraine
+          Aggregating information for helping people of Ukraine. The bot can be
+          contacted here:{" "}
+          <a href="https://t.me/uainfoplbot">https://t.me/uainfoplbot</a>
         </p>
 
         <div className={styles.grid}>
