@@ -1,0 +1,15 @@
+const {
+  BOT_TOKEN,
+  BB2_ENDPOINT,
+  AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY,
+  AWS_S3_BUCKET,
+} = process.env;
+
+module.exports = {
+  BOT_TOKEN,
+  BB2_ENDPOINT,
+  AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY,
+  AWS_S3_BUCKET,
+};
