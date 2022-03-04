@@ -4,22 +4,27 @@ const Article = (props) => (
   <article className="blog-post">
     <h2 className="blog-post-title">Sample blog post</h2>
     <p className="blog-post-meta">
-      January 1, 2021 by <a href="#">Mark</a>
+      {new Date(props.date * 1000).toDateString()} by{" "}
+      <a href="#">
+        {props.from.first_name} {props.from.last_name}
+      </a>
     </p>
-    <p>{JSON.stringify(props)}</p>
+    <p style={{ whiteSpace: "pre-wrap" }}>{props.text}</p>
+    {/* <pre>{JSON.stringify(props, undefined, 2)}</pre> */}
   </article>
 );
+
 const Header = () => (
   <header className="blog-header py-3">
     <div className="row flex-nowrap justify-content-between align-items-center">
       <div className="col-4 pt-1">
         <a
           className="link-secondary"
-          href="https://t.me/uainfoplbot"
+          href="http://t.me/uainfopl_bot"
           target="_blank"
           rel="noreferrer"
         >
-          Chat with the bot
+          Telegram Bot @uainfopl_bot
         </a>
       </div>
       <div className="col-4 text-center">
@@ -193,7 +198,7 @@ export default function Home({ messages }) {
             </h3>
 
             {messages.map((m) => (
-              <Article {...m} />
+              <Article key={m.update_id} {...m.update.message} />
             ))}
 
             <nav className="blog-pagination" aria-label="Pagination">
@@ -298,7 +303,7 @@ export async function getServerSideProps(context) {
   }
   console.log({ messageKeys });
   const messages = await Promise.all(
-    messageKeys.map((mk) =>
+    messageKeys.reverse().map((mk) =>
       storage
         .get(mk)
         .then(JSON.parse)

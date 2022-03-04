@@ -6,8 +6,8 @@ const uuid = require("uuid");
 const s3 = new AWS.S3({
   // for backblaze
   endpoint: new AWS.Endpoint(settings.BB2_ENDPOINT),
-  accessKeyId: settings.AWS_ACCESS_KEY_ID,
-  secretAccessKey: settings.AWS_SECRET_ACCESS_KEY,
+  accessKeyId: settings.BB2_ACCESS_KEY_ID,
+  secretAccessKey: settings.BB2_SECRET_ACCESS_KEY,
   // not used for backblaze
   // region: "us-east-1",
   signatureVersion: "v4",
@@ -15,7 +15,7 @@ const s3 = new AWS.S3({
 
 async function* list(Prefix, Delimiter = "/") {
   let params = {
-    Bucket: settings.AWS_S3_BUCKET,
+    Bucket: settings.BB2_BUCKET,
     Prefix,
     Delimiter,
   };
@@ -37,7 +37,7 @@ async function* list(Prefix, Delimiter = "/") {
 async function put(key, content, jsonStringify = true) {
   return s3
     .putObject({
-      Bucket: settings.AWS_S3_BUCKET,
+      Bucket: settings.BB2_BUCKET,
       Key: key,
       Body: jsonStringify ? JSON.stringify(content) : content,
     })
@@ -48,7 +48,7 @@ async function exists(key) {
   return s3
     .headObject({
       Key: key,
-      Bucket: settings.AWS_S3_BUCKET,
+      Bucket: settings.BB2_BUCKET,
     })
     .promise()
     .then(() => true)
@@ -59,7 +59,7 @@ async function get(key) {
   return s3
     .getObject({
       Key: key,
-      Bucket: settings.AWS_S3_BUCKET,
+      Bucket: settings.BB2_BUCKET,
     })
     .promise()
     .then((res) => res.Body.toString("utf-8"));
@@ -69,7 +69,7 @@ async function del(key) {
   return s3
     .deleteObject({
       Key: key,
-      Bucket: settings.AWS_S3_BUCKET,
+      Bucket: settings.BB2_BUCKET,
     })
     .promise();
 }
