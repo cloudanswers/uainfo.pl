@@ -75,10 +75,11 @@ async function del(key) {
 }
 
 async function log(prefix, data) {
-  return put(
-    path.join("messages", new Date().toISOString() + "__" + uuid.v4()),
-    data
+  const fileName = path.join(
+    "messages",
+    new Date().toISOString() + "__" + uuid.v4()
   );
+  return put(fileName, data).then(() => fileName);
 }
 
 module.exports = {

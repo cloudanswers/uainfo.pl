@@ -30,8 +30,8 @@ bot.command("info", async (ctx) => {
 bot.on("sticker", (ctx) => ctx.reply("✔️"));
 bot.on("text", async (ctx) => {
   console.log("on text:", ctx);
-  await storage.log("messages", ctx);
-  ctx.reply("pong: " + JSON.stringify(ctx?.message?.text));
+  let fileName = await storage.log("messages", ctx);
+  ctx.reply(`got it! ${fileName}`);
 });
 
 bot.on("*", (ctx) => {
