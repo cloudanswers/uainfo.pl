@@ -18,14 +18,14 @@ const Header = () => (
   <header className="blog-header py-3">
     <div className="row flex-nowrap justify-content-between align-items-center">
       <div className="col-4 pt-1">
-        <a
+        {/* <a
           className="link-secondary"
           href="http://t.me/uainfopl_bot"
           target="_blank"
           rel="noreferrer"
         >
           Telegram Bot @uainfopl_bot
-        </a>
+        </a> */}
       </div>
       <div className="col-4 text-center">
         <a className="blog-header-logo text-dark" href="/">
@@ -33,11 +33,14 @@ const Header = () => (
         </a>
       </div>
       <div className="col-4 d-flex justify-content-end align-items-center">
-        <a className="link-secondary" href="#" aria-label="Search">
+        {/* <a className="link-secondary" href="#" aria-label="Search">
           search
-        </a>
-        <a className="btn btn-sm btn-outline-secondary" href="#">
-          Sign up
+        </a> */}
+        <a
+          className="btn btn-sm btn-outline-secondary"
+          href="http://t.me/uainfopl_bot"
+        >
+          Telegram Bot @uainfopl_bot
         </a>
       </div>
     </div>
