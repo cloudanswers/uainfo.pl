@@ -2,20 +2,16 @@ Website for uainfo.pl
 
 Goal: Help people from Ukraine by centralizing and organizing information
 
-## start the website
-
-Start the dev server:
+## Development
 
 ```bash
+# copy the env file and set your values
+cp .env.example .env
+vi .env
+
+# start a local web server
 yarn dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## start the bot
-
-Requires BOT_TOKEN in an env var
-
-```bash
+# run the bot locally
 nodemon telegram_bot
 ```
