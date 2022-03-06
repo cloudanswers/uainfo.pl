@@ -13,14 +13,36 @@ bot.start((ctx) => {
 });
 
 bot.command("info", async (ctx) => {
-  try {
-    ctx.reply(
-      "Just forward message to the bot and it will be published on uainfo.pl (this is a work in progress)"
-    );
-  } catch (error) {
-    console.error("ERROR", error);
-    ctx.reply("error :(");
+  ctx.reply(
+    "Just forward message to the bot and it will be published on uainfo.pl (this is a work in progress)"
+  );
+});
+
+const trim = (txt, len = 64) => (txt.length > len ? txt.substr(0, len) : txt);
+
+bot.command("mod", async (ctx) => {
+  let nextMsgKey;
+  let nextMsg;
+  for await (const x of storage.list("", "")) {
+    try {
+      const o = JSON.parse(await storage.get(x));
+      if (o._mod_status) continue;
+      nextMsgKey = x;
+      nextMsg = o;
+      break;
+    } catch (e) {
+      // ignore
+    }
   }
+  const { update } = nextMsg;
+  const { from } = update.message;
+  ctx.reply(
+    `From: ${from.first_name} ${from.last_name}\n${update.message.text}`,
+    Markup.inlineKeyboard([
+      Markup.button.callback("Approve", trim(`mod_approve ${nextMsgKey}`)),
+      Markup.button.callback("Reject", trim(`mod_reject ${nextMsgKey}`)),
+    ])
+  );
 });
 
 const tags = "Housing Border Supplies Transport Legal".split(" ").sort();
@@ -53,9 +75,15 @@ bot.on("message", async (ctx) => {
 });
 
 bot.action("delete", (ctx) => {
-  console.debug("delete", ctx);
+  console.debug(
+    "delete",
+    ctx,
+    ctx.update,
+    JSON.stringify(ctx.update.callback_query, undefined, 2)
+  );
   ctx.deleteMessage();
   // TODO don't fully delete, just soft delete so user can re-publish if an accident
+  storage.get();
 });
 
 bot.action(/tag .+/, async (ctx) => {
