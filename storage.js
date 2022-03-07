@@ -44,6 +44,10 @@ async function put(key, content, jsonStringify = true) {
     .promise();
 }
 
+async function putJson(key, content) {
+  return put(key, content, true);
+}
+
 async function exists(key) {
   return s3
     .headObject({
@@ -63,6 +67,10 @@ async function get(key) {
     })
     .promise()
     .then((res) => res.Body.toString("utf-8"));
+}
+
+async function getJson(key) {
+  return get(key).then(JSON.parse);
 }
 
 async function del(key) {
@@ -85,7 +93,9 @@ async function log(prefix, data) {
 module.exports = {
   list,
   get,
+  getJson,
   put,
+  putJson,
   del,
   exists,
   log,

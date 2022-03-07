@@ -19,6 +19,10 @@ bot.command("info", async (ctx) => {
 });
 
 const trim = (txt, len = 64) => (txt.length > len ? txt.substr(0, len) : txt);
+const modKeyboard = Markup.inlineKeyboard([
+  Markup.button.callback("Approve", trim(`mod approve`)),
+  Markup.button.callback("Reject", trim(`mod reject`)),
+]);
 
 bot.command("mod", async (ctx) => {
   let nextMsgKey;
@@ -37,12 +41,33 @@ bot.command("mod", async (ctx) => {
   const { update } = nextMsg;
   const { from } = update.message;
   ctx.reply(
-    `From: ${from.first_name} ${from.last_name}\n${update.message.text}`,
-    Markup.inlineKeyboard([
-      Markup.button.callback("Approve", trim(`mod_approve ${nextMsgKey}`)),
-      Markup.button.callback("Reject", trim(`mod_reject ${nextMsgKey}`)),
-    ])
+    `https://uainfo.pl/${nextMsgKey}\nFrom: ${from.first_name} ${from.last_name}\n${update.message.text}`,
+    modKeyboard
   );
+});
+
+bot.action(/^mod (approve|reject) .+/, async (ctx) => {
+  const [cmd, status] = ctx.update.callback_query.data.split(/ +/);
+  console.log({ cmd, status });
+  console.log(ctx.update);
+  await ctx.answerCbQuery(`processing...`);
+  // find the doc
+  let foundDocs = [];
+  for await (const x of storage.list(key)) {
+    foundDocs.push(x);
+  }
+  if (!foundDocs.length) {
+    return ctx.reply("error, no docs found");
+  }
+  if (foundDocs.length > 1) {
+    return ctx.reply(
+      `too many docs found (${foundDocs.length}) for prefix ${key}`
+    );
+  }
+  let msg = await storage.getJson(foundDocs[0]);
+  msg._mod_status = status;
+  await storage.putJson(foundDocs[0], msg);
+  ctx.editMessageText(origMessage + `\nUPDATED ${new Date()}`, modKeyboard);
 });
 
 const tags = "Housing Border Supplies Transport Legal".split(" ").sort();
@@ -83,7 +108,7 @@ bot.action("delete", (ctx) => {
   );
   ctx.deleteMessage();
   // TODO don't fully delete, just soft delete so user can re-publish if an accident
-  storage.get();
+  // storage.get();
 });
 
 bot.action(/tag .+/, async (ctx) => {
@@ -98,58 +123,12 @@ bot.action(/tag .+/, async (ctx) => {
   const tagPath = `tags/${tag}.txt`;
   let tagData = await storage.get(tagPath).catch(() => "");
   await storage.put(tagPath, tagData + "\n" + "todo: filename?");
-
   ctx.editMessageText(origMessage + " TAGGED.", keyboard);
-  // ctx.editMessageCaption("_Caption_", {
-  //   parse_mode: "Markdown",
-  //   ...Markup.inlineKeyboard([
-  //     Markup.button.callback("Plain", "plain"),
-  //     Markup.button.callback("* Italic *", "italic"),
-  //   ]),
-  // });
 });
 
 bot.action(/.+/, (ctx) => {
   console.log("catch-all action:", ctx);
-  return ctx.answerCbQuery(`Oh, ${ctx.match[0]}! Great choice`);
-});
-
-bot.action("btn-1", (ctx) => ctx.answerCallbackQuery("Yay!"));
-
-bot.on("document", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("documents", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
-});
-
-bot.on("edited_message", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("edited_message", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
-});
-
-bot.on("forward_date", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("forward_date", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
-});
-
-bot.on("location", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("location", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
-});
-
-bot.on("photo", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("photo", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
-});
-
-bot.on("video", async (ctx) => {
-  console.log("on text:", ctx);
-  let fileName = await storage.log("video", ctx);
-  ctx.reply(`got it! https://uainfo.pl/${fileName}`);
+  return ctx.answerCbQuery(`UNKNOWN CHOICE: ${ctx.match[0]}!`);
 });
 
 bot.on(/.*/, async (ctx) => {
