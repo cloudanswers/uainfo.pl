@@ -201,7 +201,7 @@ export default function Home({ messages }) {
             </h3>
 
             {messages
-              .filter((m) => m._mod_status == "approve" || !m._mod_status)
+              .filter((m) => m._mod_status != "reject")
               .filter((m) => m.update.message.text?.length > 5)
               .map((m) => (
                 <Article key={m.update_id} {...m.update.message} />
