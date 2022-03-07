@@ -24,13 +24,35 @@ const modKeyboard = Markup.inlineKeyboard([
   Markup.button.callback("Reject", trim(`mod reject`)),
 ]);
 
-bot.command("mod", async (ctx) => {
+async function addKeyToModFile(file, key) {
+  let rejectedKeys;
+  try {
+    rejectedKeys = await (await storage.get(file)).split("\n");
+  } catch (e) {
+    rejectedKeys = [];
+  }
+  rejectedKeys.push(key);
+  await storage.put(file, rejectedKeys.join("\n"), false);
+}
+
+async function postModRequest(ctx) {
+  const rejectedKeys = await (
+    await storage.get("mod_rejected.txt")
+  ).split("\n");
   let nextMsgKey;
   let nextMsg;
   for await (const x of storage.list("", "")) {
+    if (rejectedKeys.includes(x)) continue;
     try {
       const o = JSON.parse(await storage.get(x));
-      if (o._mod_status) continue;
+      if (o._mod_status == "reject") {
+        await addKeyToModFile("mod_rejected.txt", x);
+        continue;
+      }
+      if (o._mod_status == "approve") {
+        await addKeyToModFile("mod_approved.txt", x);
+        continue;
+      }
       nextMsgKey = x;
       nextMsg = o;
       break;
@@ -44,30 +66,45 @@ bot.command("mod", async (ctx) => {
     `https://uainfo.pl/${nextMsgKey}\nFrom: ${from.first_name} ${from.last_name}\n${update.message.text}`,
     modKeyboard
   );
-});
+}
 
-bot.action(/^mod (approve|reject) .+/, async (ctx) => {
+bot.command("mod", postModRequest);
+
+bot.action(/^mod (approve|reject)/, async (ctx) => {
   const [cmd, status] = ctx.update.callback_query.data.split(/ +/);
   console.log({ cmd, status });
   console.log(ctx.update);
-  await ctx.answerCbQuery(`processing...`);
+  // TODO get the key from original message
+  let key = ctx.update.callback_query.message.text.split("\n")[0];
+  key = key.replace("https://uainfo.pl/", "");
+  ctx.editMessageText(
+    ctx.update.callback_query.message.text + `\n UPDATING...`,
+    modKeyboard
+  );
   // find the doc
   let foundDocs = [];
-  for await (const x of storage.list(key)) {
+  for await (const x of storage.list(key, "")) {
     foundDocs.push(x);
   }
-  if (!foundDocs.length) {
-    return ctx.reply("error, no docs found");
-  }
-  if (foundDocs.length > 1) {
-    return ctx.reply(
-      `too many docs found (${foundDocs.length}) for prefix ${key}`
-    );
+  if (!foundDocs.length || foundDocs.length > 1) {
+    return ctx.reply(`did not find match for ${key}`);
   }
   let msg = await storage.getJson(foundDocs[0]);
   msg._mod_status = status;
   await storage.putJson(foundDocs[0], msg);
-  ctx.editMessageText(origMessage + `\nUPDATED ${new Date()}`, modKeyboard);
+  if (status == "approve") {
+    await addKeyToModFile("mod_approved.txt", key);
+  } else if (status == "reject") {
+    await addKeyToModFile("mod_rejected.txt", key);
+  }
+
+  ctx.editMessageText(
+    ctx.update.callback_query.message.text + `\n UPDATED: ${status}`,
+    modKeyboard
+  );
+
+  // post the next one to mod...
+  postModRequest(ctx);
 });
 
 const tags = "Housing Border Supplies Transport Legal".split(" ").sort();
